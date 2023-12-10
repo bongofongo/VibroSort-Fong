@@ -6,7 +6,6 @@ using TMPro;
 public class HapticsManager : MonoBehaviour
 {
     // Start is called before the first frame update
-
     public TextMeshProUGUI debugText;
     private int hapticFrameMilli = 100; // Each frame is 50 milliseconds.
 
@@ -50,6 +49,11 @@ public class HapticsManager : MonoBehaviour
     public bool rightHapticLoop = true;
     public float rightHapticStartTime = 0f;
 
+    private float[] grabHapticValues = new float[] { 0f, 0.1f, 0.25f, 0.45f, 0.7f, 1f, 0f, 0f, 0f, 0f, 0f };
+    private float[] putDownHapticValues = new float[] { 0.5f, 1f, 0.85f, 0.65f, 0.4f, 0.1f, 0f, 0f, 0f, 0f, 0f };
+    private float[] collisionHapticValues = new float[] { 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f, 1f };
+
+
     void Start()
     {
         LeftHapticsBuffer_amp = new float[] {0f};
@@ -57,6 +61,8 @@ public class HapticsManager : MonoBehaviour
 
         RightHapticsBuffer_amp = new float[] {0f};
         RightHapticsBuffer_freq = new float[] {0f};
+
+        InitializeColorToHapticMapping();
     }
 
     // Need a function that takes a relative Haptic Buffer in seconds and returns an Absolute Haptic Buffer in milliseconds.
@@ -95,6 +101,86 @@ public class HapticsManager : MonoBehaviour
             RightHapticsBuffer_freq = new float[] {0f};
         }
     }
+
+    public void SetHapticFeedback(int type, int side)
+    // type=0 means grab, 1=putdown, 2=collision with objects
+    // side=0=right, 1=left
+    {
+        //right
+        if (side == 0) {
+            switch (type)
+            {
+                case 0
+                    SetRightHapticValues(grabHapticValues);
+                    break;
+                case 1:
+                    SetRightHapticValues(putDownHapticValues);
+                    break;
+                case 2:
+                    SetRightHapticValues(collisionHapticValues);
+                    break;
+            }
+        }
+        //left
+        if (side != 0) {
+            switch (type)
+            {
+                case 0
+                    SetLeftHapticValues(grabHapticValues);
+                    break;
+                case 1:
+                    SetLeftHapticValues(putDownHapticValues);
+                    break;
+                case 2:
+                    SetLeftHapticValues(collisionHapticValues);
+                    break;
+            }
+        }
+    }
+
+    // To set the values for putting down, grabbing, and collision
+    private void SetRightHapticValues(float[] hapticValues)
+    {
+        RightHapticsBuffer_freq = new float[hapticValues.Length];
+        RightHapticsBuffer_amp = hapticValues;
+        RightDuration = LeftHapticsBuffer_freq.Length * hapticFrameMilli;
+    }
+
+    private void SetLeftHapticValues(float[] hapticValues)
+    {
+        LeftHapticsBuffer_freq = new float[hapticValues.Length];
+        LeftHapticsBuffer_amp = hapticValues;
+        leftDuration = LeftHapticsBuffer_freq.Length * hapticFrameMilli;
+    }
+
+    // To initialize the different category amp values
+    private void InitializeColorToHapticMapping()
+    {
+        colorToHapticMapping = new Dictionary<ObjectCategory, float[]>
+        {
+            { ObjectCategory.Concrete, new float[] { 1f, 1f, 0.7f, 0.5f, 0.2f, 0f, 0f, 0f, 0f, 0f, 0f } },
+            { ObjectCategory.Squishy, new float[] { 0f, 0.2f, 0.5f, 0.7f, 1f, 1f, 0.7f, 0.5f, 0.2f, 0f, 0f } },
+            { ObjectCategory.Chalky, new float[] { 1f, 0f, 1f, 0f, 1f, 0f, 1f, 0f, 1f, 0f, 1f } },
+            { ObjectCategory.Bruisy, new float[] { 1f, 0.5f, 0.1f, 1f, 0.5f, 0.1f, 1f, 0.5f, 0.1f, 0f } },
+            { ObjectCategory.Alien, new float[] { 0.2f, 1f, 0.3f, 0.9f, 0.4f, 0.8f, 0.5f, 0.7f, 0.6, 0.7f 0.8f } }
+        };
+    }
+
+    public void LeftSetColorHaptic(ObjectCategory category)
+    {
+        LeftHapticsBuffer_freq = new float[LeftHapticsBuffer_freq.Length];
+        LeftHapticsBuffer_amp = colorToHapticMapping[category];
+        leftDuration = LeftHapticsBuffer_freq.Length * hapticFrameMilli;
+    }
+
+    public void RightSetColorHaptic(ObjectCategory category)
+    {
+        RightHapticsBuffer_freq = new float[RightHapticsBuffer_freq.Length];
+        RightHapticsBuffer_amp = colorToHapticMapping[category];
+        RightDuration = RightHapticsBuffer_freq.Length * hapticFrameMilli;
+    }
+
+    
 }
 
 

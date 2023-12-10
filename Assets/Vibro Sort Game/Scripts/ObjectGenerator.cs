@@ -40,6 +40,7 @@ public class ObjectGenerator : MonoBehaviour
         for (int i = 0; i < shuffledBins.Length; i++) {
             shuffledBins[i].GetComponent<Renderer>().material = categoryMaterials[i];
             shuffledBins[i].transform.GetChild(0).GetComponent<BinCheck>().binCategory = (ObjectCategory)i;
+            SpatialHapticSource shs = shuffledBins[i].transform.GetChild(0).AddComponent<SpatialHapticSource>;
         }
     }
 
